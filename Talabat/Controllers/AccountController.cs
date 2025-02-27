@@ -1,0 +1,78 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using Talabat.Core.Entities.Identity;
+using Talabat.Dtos;
+using Talabat.Error;
+
+namespace Talabat.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AccountController : ControllerBase
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public AccountController(UserManager<ApplicationUser> userManager
+            ,SignInManager<ApplicationUser> signInManager)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDTO model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user is null)
+                return BadRequest(
+                    new ErrorResponse(HttpStatusCode.BadRequest, "Given Email or Password is not Correct"));
+
+            var result = await _userManager.CheckPasswordAsync(user, model.Password);
+            if(!result)
+                return BadRequest(
+                    new ErrorResponse(HttpStatusCode.BadRequest, "Given Email or Password is not Correct"));
+
+            return Ok(new UserDTO() 
+            { 
+                DisplayName = user.DisplayName, 
+                UserName = user.UserName, 
+                Token = "token.ToString()"
+            });
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterDTO model)
+        {
+            if(await _userManager.FindByEmailAsync(model.Email) is not null)
+                return BadRequest(
+                    new ErrorResponse(HttpStatusCode.BadRequest, "Given Email already Exists"));
+
+            if (await _userManager.FindByNameAsync(model.UserName) is not null)
+                return BadRequest(
+                    new ErrorResponse(HttpStatusCode.BadRequest, "Given UserName already Exists"));
+
+            var user = new ApplicationUser()
+            {
+                DisplayName = model.DisplayName,
+                Email = model.Email,
+                UserName = model.UserName,
+                PhoneNumber = model.PhoneNumber
+            };
+
+            var result = await _userManager.CreateAsync(user,model.Password);
+            if(!result.Succeeded)
+                return BadRequest(
+                    new ErrorResponse(HttpStatusCode.BadRequest, "Password is not Correct"));
+            
+            return Ok(new UserDTO()
+            {
+                DisplayName = user.DisplayName,
+                UserName = user.UserName,
+                Token = "jskdlajsldk"
+            });
+        }
+    }
+}
