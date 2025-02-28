@@ -4,7 +4,6 @@
     {
         public Order(
             string customerEmail,
-            OrderStatus status,
             ICollection<OrderItem> oredrItems,
             Address orderAddress,
             DeleveryMethod deleveryMethod,

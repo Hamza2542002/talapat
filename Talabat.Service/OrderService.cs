@@ -14,7 +14,7 @@ namespace Talabat.Service
         private readonly IGenericRepository<Order> _orderRepo;
 
         public OrderService(ICartRepository cartRepo,
-            IGenericRepository<Product> productRepo, 
+            IGenericRepository<Product> productRepo,
             IGenericRepository<DeleveryMethod> deleveryRepo,
             IGenericRepository<Order> orderRepo)
         {
@@ -70,7 +70,7 @@ namespace Talabat.Service
 
             await _orderRepo.AddAsync(order);
 
-            await _context.SaveChangesAsync();
+            // Saving TO DB
             
             return order;
         }
