@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Talabat.Core.Entities;
+using Talabat.Core.Entities.Order_Aggregate;
 
 namespace Talabat.Repository.Data
 {
@@ -11,10 +12,30 @@ namespace Talabat.Repository.Data
             await SeedBrands(context);
             await SeedCategories(context);
             await SeedProducts(context);
+            await SeedDeleveryMethods(context);
 
             await SeedDepartments(context);
             await SeedEmployees(context);
         }
+
+        private static async Task SeedDeleveryMethods(StoreContext context)
+        {
+            if (!await context.DeleveryMethods.AnyAsync())
+            {
+                var deleveryMethodsData = await File.ReadAllTextAsync("../Talabat.Repository/Data/DataSeed/delivery.json");
+                var deleveryMethods = JsonSerializer.Deserialize<ICollection<DeleveryMethod>>(deleveryMethodsData);
+                if (deleveryMethods?.Count > 0)
+                {
+                    foreach (var deleveryMethod in deleveryMethods)
+                    {
+                        context.Set<DeleveryMethod>().Add(deleveryMethod);
+                    }
+                }
+
+                await context.SaveChangesAsync();
+            }
+        }
+
         private static async Task SeedBrands(StoreContext context)
         {
             if (!await context.Brands.AnyAsync())
