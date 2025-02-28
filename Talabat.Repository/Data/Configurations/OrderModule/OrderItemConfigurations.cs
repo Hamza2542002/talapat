@@ -9,8 +9,6 @@ namespace Talabat.Repository.Data.Configurations.OrderModule
         public void Configure(EntityTypeBuilder<OrderItem> builder)
         {
             builder.HasKey(o => o.Id);
-            builder.Property(o => o.OrderedItemProduct.ProductId).IsRequired();
-            builder.Property(o => o.OrderedItemProduct.ProductName).IsRequired();
             builder.Property(o => o.Price).IsRequired();
             builder.Property(o => o.Price).HasColumnType("decimal(18,2)");
             builder.Property(o => o.Quantity).IsRequired();

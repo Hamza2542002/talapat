@@ -10,7 +10,7 @@
         {
             OrderedItemProduct = orderedItemProduct;
             Price = price;
-            Qauntity = qauntity;
+            Quantity = qauntity;
         }
 
         public OrderedItemProduct OrderedItemProduct { get; set; } = new();
