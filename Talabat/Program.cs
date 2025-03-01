@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using Talabat.Core;
 using Talabat.Core.Entities.Identity;
 using Talabat.Core.IRepositories;
 using Talabat.Core.Specifications;
@@ -40,6 +41,8 @@ public class Program
 
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationIdentityDbContext>();
+
+        builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
 
         var app = builder.Build();
 

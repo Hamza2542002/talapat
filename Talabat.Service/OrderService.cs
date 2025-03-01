@@ -1,4 +1,5 @@
-﻿using Talabat.Core.Entities;
+﻿using Talabat.Core;
+using Talabat.Core.Entities;
 using Talabat.Core.Entities.Order_Aggregate;
 using Talabat.Core.IRepositories;
 using Talabat.Core.IServices;
@@ -9,19 +10,19 @@ namespace Talabat.Service
     public class OrderService : IOrderService
     {
         private readonly ICartRepository _cartRepo;
-        private readonly IGenericRepository<Product> _productRepo;
-        private readonly IGenericRepository<DeleveryMethod> _deleveryRepo;
-        private readonly IGenericRepository<Order> _orderRepo;
+        private readonly IUnitOfWork _unitOfWork;
+        private IGenericRepository<Product> _productRepo;
+        private IGenericRepository<DeleveryMethod> _deleveryRepo;
+        private IGenericRepository<Order> _orderRepo;
 
         public OrderService(ICartRepository cartRepo,
-            IGenericRepository<Product> productRepo,
-            IGenericRepository<DeleveryMethod> deleveryRepo,
-            IGenericRepository<Order> orderRepo)
+            IUnitOfWork unitOfWork)
         {
             _cartRepo = cartRepo;
-            _productRepo = productRepo;
-            _deleveryRepo = deleveryRepo;
-            _orderRepo = orderRepo;
+            _unitOfWork = unitOfWork;
+            _productRepo = _unitOfWork.GetRepository<Product>();
+            _deleveryRepo = _unitOfWork.GetRepository<DeleveryMethod>();
+            _orderRepo = _unitOfWork.GetRepository<Order>();
         }
         public async Task<Order?> CreateOrderAsync(
             string customerEmail, 
@@ -32,6 +33,7 @@ namespace Talabat.Service
             // 1- Get Cart From Cart Repo
 
             var cart = await _cartRepo.GetCustomerCartAsync(cartId);
+            if (cart is null) return null;
 
             // 2- Get Selected Items From Product Repo
 
@@ -54,6 +56,9 @@ namespace Talabat.Service
                 }
             }
 
+            if (orderItems.Count <= 0)
+                return null;
+
             // 3- Calculate SubTotal
 
             var subTotal = orderItems.Sum(orderItem => orderItem.Quantity * orderItem.Price);
@@ -61,6 +66,8 @@ namespace Talabat.Service
             // 4- Get Delevery Method From Delevery Method Repo
 
             var deleveryMethod = await _deleveryRepo.GetAsync(deleveryMethodId);
+
+            if (deleveryMethod is null) return null;
 
             // 5- Create Order
 
@@ -71,7 +78,11 @@ namespace Talabat.Service
             await _orderRepo.AddAsync(order);
 
             // Saving TO DB
-            
+
+            var result = await _unitOfWork.CompleteAsync();
+
+            if (result <= 0) return null;
+
             return order;
         }
 

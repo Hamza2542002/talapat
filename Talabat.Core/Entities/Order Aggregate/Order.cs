@@ -10,7 +10,6 @@
             decimal subTotal)
         {
             CustomerEmail = customerEmail;
-            Status = status;
             OredrItems = oredrItems;
             OrderAddress = orderAddress;
             DeleveryMethod = deleveryMethod;
