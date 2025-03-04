@@ -4,6 +4,7 @@ using StackExchange.Redis;
 using Talabat.Core;
 using Talabat.Core.Entities.Identity;
 using Talabat.Core.IRepositories;
+using Talabat.Core.IServices;
 using Talabat.Core.Specifications;
 using Talabat.Extentions;
 using Talabat.Helpers;
@@ -11,6 +12,7 @@ using Talabat.Middlewares;
 using Talabat.Repository;
 using Talabat.Repository.Data;
 using Talabat.Repository.Identity;
+using Talabat.Service;
 namespace Talabat;
 
 public class Program
@@ -43,6 +45,7 @@ public class Program
             .AddEntityFrameworkStores<ApplicationIdentityDbContext>();
 
         builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
+        builder.Services.AddScoped(typeof(IOrderService),typeof(OrderService));
 
         var app = builder.Build();
 

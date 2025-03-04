@@ -1,9 +1,11 @@
-﻿using Talabat.Core;
+﻿using Microsoft.AspNetCore.Identity;
+using Talabat.Core;
 using Talabat.Core.Entities;
+using Talabat.Core.Entities.Identity;
 using Talabat.Core.Entities.Order_Aggregate;
 using Talabat.Core.IRepositories;
 using Talabat.Core.IServices;
-using Talabat.Repository.Data;
+using Talabat.Core.Specifications.OrderSpecs;
 
 namespace Talabat.Service
 {
@@ -11,24 +13,20 @@ namespace Talabat.Service
     {
         private readonly ICartRepository _cartRepo;
         private readonly IUnitOfWork _unitOfWork;
-        private IGenericRepository<Product> _productRepo;
-        private IGenericRepository<DeleveryMethod> _deleveryRepo;
-        private IGenericRepository<Order> _orderRepo;
-
+        private readonly UserManager<ApplicationUser> _userManager;
         public OrderService(ICartRepository cartRepo,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            UserManager<ApplicationUser> userManager)
         {
             _cartRepo = cartRepo;
             _unitOfWork = unitOfWork;
-            _productRepo = _unitOfWork.GetRepository<Product>();
-            _deleveryRepo = _unitOfWork.GetRepository<DeleveryMethod>();
-            _orderRepo = _unitOfWork.GetRepository<Order>();
+            _userManager = userManager;
         }
         public async Task<Order?> CreateOrderAsync(
             string customerEmail, 
             string cartId, 
-            int deleveryMethodId, 
-            Address orderAddress)
+            int deleveryMethodId,
+            Core.Entities.Order_Aggregate.Address orderAddress)
         {
             // 1- Get Cart From Cart Repo
 
@@ -43,7 +41,7 @@ namespace Talabat.Service
             {
                 foreach (var item in cartProducts)
                 {
-                    var product = await _productRepo.GetAsync(item.ItemId);
+                    var product = await _unitOfWork.GetRepository<Product>().GetAsync(item.ItemId);
 
                     if (product is null) return null;
                     orderItems.Add(
@@ -65,7 +63,7 @@ namespace Talabat.Service
 
             // 4- Get Delevery Method From Delevery Method Repo
 
-            var deleveryMethod = await _deleveryRepo.GetAsync(deleveryMethodId);
+            var deleveryMethod = await _unitOfWork.GetRepository<DeleveryMethod>().GetAsync(deleveryMethodId);
 
             if (deleveryMethod is null) return null;
 
@@ -75,7 +73,7 @@ namespace Talabat.Service
 
             // 6- Save To Data Base
 
-            await _orderRepo.AddAsync(order);
+            await _unitOfWork.GetRepository<Order>().AddAsync(order);
 
             // Saving TO DB
 
@@ -86,14 +84,30 @@ namespace Talabat.Service
             return order;
         }
 
-        public Task<Order> GetOrderForUserAsync(int OrderId, string userEmail)
+        public async Task<IReadOnlyList<DeleveryMethod>?> GetDeleveryMethods()
         {
-            throw new NotImplementedException();
+            return await _unitOfWork.GetRepository<DeleveryMethod>().GetAllAsync();
         }
 
-        public Task<IReadOnlyList<Order>> GetOrdersForUserAsync(string userEmail)
+        public async Task<Order?> GetOrderForUserAsync(int orderId, string userEmail)
         {
-            throw new NotImplementedException();
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            if (user is null) return null;
+            var specs = new OrderSpecifications(orderId,userEmail);
+            var order = await _unitOfWork.GetRepository<Order>().GetWithSpecsAsync(specs);
+            return order;
         }
+
+        public async Task<IReadOnlyList<Order>?> GetOrdersForUserAsync(string userEmail,OrderSpecsParams specsParams)
+        {
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            if (user is null) return null;
+
+            var specs = new OrderSpecifications(userEmail,specsParams);
+            var orders = await _unitOfWork.GetRepository<Order>().GetAllWithSpecsAsync(specs);
+            return orders;
+        }
+    
+
     }
 }
