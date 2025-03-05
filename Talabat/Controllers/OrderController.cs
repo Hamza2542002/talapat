@@ -40,7 +40,10 @@ namespace Talabat.Controllers
         public async Task<IActionResult> GetOrdersForUser(string userEmail,[FromQuery]OrderSpecsParams specsParams)
         {
             var result = await _orderService.GetOrdersForUserAsync(userEmail, specsParams);
-            return Ok(result);
+            if (result is null)
+                return BadRequest(new ErrorResponse(HttpStatusCode.BadRequest));
+            var orders = _mapper.Map<IReadOnlyList<OrderToReturnDTO>>(result);
+            return Ok(orders);
         }
 
         [HttpGet("{id:int}")]
@@ -48,7 +51,8 @@ namespace Talabat.Controllers
         {
             var result = await _orderService.GetOrderForUserAsync(id, userEmail);
             if(result is null ) return NotFound(new ErrorResponse(HttpStatusCode.NotFound));
-            return Ok(result);
+            var order = _mapper.Map<OrderToReturnDTO>(result);
+            return Ok(order);
         }
 
         [HttpGet("delivery-methods")]

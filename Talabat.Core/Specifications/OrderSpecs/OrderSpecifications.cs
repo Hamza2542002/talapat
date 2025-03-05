@@ -37,6 +37,7 @@ namespace Talabat.Core.Specifications.OrderSpecs
         private void AddIncludes()
         {
             Includes.Add(O => O.OredrItems);
+            Includes.Add(O => O.DeleveryMethod);
         }
 
         private void AddPagination(OrderSpecsParams specsParams)
