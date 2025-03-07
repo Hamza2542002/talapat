@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using Talabat.Core.Entities.Identity;
+using Talabat.Core.IServices;
 using Talabat.Dtos;
 using Talabat.Error;
 
@@ -14,12 +15,16 @@ namespace Talabat.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAuthService _authService;
 
-        public AccountController(UserManager<ApplicationUser> userManager
-            ,SignInManager<ApplicationUser> signInManager)
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IAuthService authService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _authService = authService;
         }
 
         [HttpPost("login")]
@@ -35,11 +40,11 @@ namespace Talabat.Controllers
                 return BadRequest(
                     new ErrorResponse(HttpStatusCode.BadRequest, "Given Email or Password is not Correct"));
 
-            return Ok(new UserDTO() 
-            { 
-                DisplayName = user.DisplayName, 
-                UserName = user.UserName, 
-                Token = "token.ToString()"
+            return Ok(new UserDTO()
+            {
+                DisplayName = user.DisplayName,
+                UserName = user.UserName,
+                Token = _authService.GenerateTokenAsync(user).Result
             });
         }
 
@@ -71,7 +76,7 @@ namespace Talabat.Controllers
             {
                 DisplayName = user.DisplayName,
                 UserName = user.UserName,
-                Token = "jskdlajsldk"
+                Token = _authService.GenerateTokenAsync(user).Result
             });
         }
     }
