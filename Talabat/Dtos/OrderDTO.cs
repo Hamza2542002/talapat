@@ -6,8 +6,6 @@ namespace Talabat.Dtos
     public class OrderDTO
     {
         [Required]
-        public string? CustomerEmail { get; set; }
-        [Required]
         public string? CartId { get; set; }
         [Required]
         public AddressDTO? OrderAddress { get; set; }
