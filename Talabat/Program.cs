@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
+using System.Text;
 using Talabat.Core;
 using Talabat.Core.Entities.Identity;
 using Talabat.Core.IRepositories;
@@ -44,6 +47,33 @@ public class Program
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationIdentityDbContext>();
 
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.SaveToken = false;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JWT:Audience"],
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["JWT:Issure"],
+                ClockSkew = TimeSpan.Zero,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = 
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(
+                            builder.Configuration.GetSection("JWT")["SecurityKey"] 
+                            ?? "asljdjklsahdjkshddasjkhdksa"))
+
+            };
+
+        });
+
         builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
         builder.Services.AddScoped(typeof(IOrderService),typeof(OrderService));
         builder.Services.AddScoped(typeof(IProductService),typeof(ProductService));
@@ -67,9 +97,11 @@ public class Program
 
         app.UseStaticFiles(); // must be used here
 
-        app.UseAuthorization();
-
         app.MapControllers();
+
+        app.UseAuthentication();
+
+        app.UseAuthorization();
 
         app.Run();
     }

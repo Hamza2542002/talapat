@@ -37,7 +37,7 @@ namespace Talabat.Service
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
-            var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("JWT")["SecurityKey"] ?? ""));
+            var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("JWT")["SecurityKey"] ?? "asljdjklsahdjkshddasjkhdksa"));
 
             var signInCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256);
 
