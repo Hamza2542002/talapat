@@ -46,6 +46,7 @@ public class Program
 
         builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
         builder.Services.AddScoped(typeof(IOrderService),typeof(OrderService));
+        builder.Services.AddScoped(typeof(IProductService),typeof(ProductService));
         builder.Services.AddScoped(typeof(IAuthService), typeof(AuthService));
 
         builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));

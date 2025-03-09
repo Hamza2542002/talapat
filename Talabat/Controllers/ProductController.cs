@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Talabat.Core;
 using Talabat.Core.Entities;
 using Talabat.Core.IRepositories;
+using Talabat.Core.IServices;
 using Talabat.Core.Specifications.ProductSpecs;
 using Talabat.Dtos;
 using Talabat.Helpers;
@@ -11,28 +13,24 @@ namespace Talabat.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController(
-        IGenericRepository<Product> productsRepository,
-        IGenericRepository<Brand> brandsRepository,
-        IGenericRepository<Category> categoriesRepository,
+        IProductService productService,
         IMapper mapper) : ControllerBase
     {
-        private readonly IGenericRepository<Product> _productsRepository = productsRepository;
-        private readonly IGenericRepository<Brand> _brandsRepository = brandsRepository;
-        private readonly IGenericRepository<Category> _categoriesRepository = categoriesRepository;
+        private readonly IProductService _productService = productService;
         private readonly IMapper _mapper = mapper;
 
         [HttpGet()]
         public async Task<IActionResult> GetProducts([FromQuery]ProductSpecsParams productParamsModel)
         {
-            var products = 
-                await _productsRepository.GetAllWithSpecsAsync(new ProductSpecifications(productParamsModel));
+            var products =
+                await _productService.GetProductsAsync(productParamsModel);
 
             var response = new PaginationResponse<ProductToreturnDTO>()
             {
                 Data = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToreturnDTO>>(products),
                 PageIndex = productParamsModel.PageIndex,
                 PageSize = productParamsModel.PageSize,
-                Count = await _productsRepository.GetCountAsync(new ProductCountSpecs(productParamsModel))
+                Count = await _productService.GetCountAsync(productParamsModel)
             };
 
             return Ok(response);
@@ -43,7 +41,7 @@ namespace Talabat.Controllers
         public async Task<IActionResult> GetProduct(int id)
         {
             var product =
-                await _productsRepository.GetWithSpecsAsync(new ProductSpecifications(id));
+                await _productService.GetProductAsync(id);
 
             return product is null ? 
                         BadRequest(new {message = "No Product With this id"}) : 
@@ -53,14 +51,14 @@ namespace Talabat.Controllers
         [HttpGet("brands")]
         public async Task<IActionResult> GetBrands()
         {
-            var brands = await _brandsRepository.GetAllAsync();
+            var brands = await _productService.GetBrandsAsync();
             return Ok(brands);
         }
 
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories()
         {
-            var categories = await _categoriesRepository.GetAllAsync();
+            var categories = await _productService.GetCategoriesAsync();
             return Ok(categories);
         }
     }
