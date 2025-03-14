@@ -2,7 +2,7 @@
 
 namespace Talabat.Dtos
 {
-    public class AddressDTO
+    public class OrderAddressDTO
     {
         [Required] 
         public string? FName { get; set; }

@@ -8,7 +8,7 @@ namespace Talabat.Dtos
         [Required]
         public string? CartId { get; set; }
         [Required]
-        public AddressDTO? OrderAddress { get; set; }
+        public OrderAddressDTO? OrderAddress { get; set; }
         [Required]
         public int DelevryMethodId { get; set; }
     }
