@@ -3,6 +3,9 @@ using Talabat.Core.Entities;
 using Talabat.Core.Entities.Order_Aggregate;
 using Talabat.Dtos;
 
+using UserAddress = Talabat.Core.Entities.Identity.Address;
+using OrderAddress = Talabat.Core.Entities.Order_Aggregate.Address;
+
 namespace Talabat.Helpers
 {
     public class MappingProfiles : Profile
@@ -18,7 +21,7 @@ namespace Talabat.Helpers
 
             CreateMap<CartItemDTO,CartItem>();
             CreateMap<CustomerCartDTO, CustomerCart>();
-            CreateMap<AddressDTO, Address>();
+            CreateMap<OrderAddressDTO, OrderAddress>();
 
             CreateMap<OrderItem, OrderItemDTO>()
                 .ForMember(d => d.ProductName, o => o.MapFrom(s => s.OrderedItemProduct.ProductName))
@@ -28,6 +31,9 @@ namespace Talabat.Helpers
             CreateMap<Order, OrderToReturnDTO>()
                 .ForMember(o => o.DeleveryMethodName, o => o.MapFrom(s => s.DeleveryMethod.ShortName))
                 .ForMember(o => o.DeleveryMethodCost, o => o.MapFrom(s => s.DeleveryMethod.Cost));
+
+            CreateMap<UserAddress, UserAddressDTO>();
+            CreateMap<UserAddressDTO, UserAddress>();
 
         }
     }
