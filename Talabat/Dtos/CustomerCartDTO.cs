@@ -6,6 +6,7 @@ namespace Talabat.Dtos
     {
         [Required]
         public string? Id { get; set; }
+        public int DeliveryMethodId { get; set; }
         public List<CartItemDTO>? CartItems { get; set; } = [];
     }
 }
