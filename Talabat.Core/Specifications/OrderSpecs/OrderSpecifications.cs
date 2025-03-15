@@ -10,6 +10,10 @@ namespace Talabat.Core.Specifications.OrderSpecs
         {
             AddIncludes();
         }
+        public OrderSpecifications(string paymentIntentId)
+            : base(O => paymentIntentId == O.PaymentIntentId)
+        {
+        }
         public OrderSpecifications(string customerEmail,OrderSpecsParams specsParams)
             :base(O => O.CustomerEmail ==  customerEmail) 
         {

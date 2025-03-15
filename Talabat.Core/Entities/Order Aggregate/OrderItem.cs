@@ -16,5 +16,7 @@
         public OrderedItemProduct OrderedItemProduct { get; set; } = new();
         public decimal Price { get; set; }
         public int Quantity { get; set; }
+        public int? OrderId { get; set; }
+        public Order? Order { get; set; }
     }
 }

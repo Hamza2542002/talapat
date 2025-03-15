@@ -22,11 +22,11 @@ namespace Talabat.Service
             _cartRepository = cartRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task<CustomerCart?> CreateOrUpdatePaymentIntent(string basketId)
+        public async Task<CustomerCart?> CreateOrUpdatePaymentIntent(string cartId)
         {
             StripeConfiguration.ApiKey = _configuration["StripSettings:SecretKey"];
 
-            var cart = await _cartRepository.GetCustomerCartAsync(basketId);
+            var cart = await _cartRepository.GetCustomerCartAsync(cartId);
             
             if (cart is null) return null;
 

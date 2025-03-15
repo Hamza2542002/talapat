@@ -32,12 +32,12 @@ namespace Talabat.Controllers
             var createdOrder = await _orderService
                 .CreateOrderAsync(CustomerEmail ?? "",
                                   order.CartId ?? "",
-                                  order.DelevryMethodId,
+                                  //order.DelevryMethodId,
                                   _mapper.Map<Address>(order.OrderAddress) ?? new());
             if (createdOrder is null)
                 return BadRequest(new ErrorResponse(HttpStatusCode.BadRequest,"Couldn't Create The Order"));
 
-            return Ok(createdOrder);
+            return Ok(_mapper.Map<OrderToReturnDTO>(createdOrder));
         }
 
         [HttpGet]

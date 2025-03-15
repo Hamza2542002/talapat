@@ -14,18 +14,22 @@ namespace Talabat.Service
         private readonly ICartRepository _cartRepo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IPaymentService _paymentService;
+
         public OrderService(ICartRepository cartRepo,
             IUnitOfWork unitOfWork,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IPaymentService paymentService)
         {
             _cartRepo = cartRepo;
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _paymentService = paymentService;
         }
         public async Task<Order?> CreateOrderAsync(
             string customerEmail, 
             string cartId, 
-            int deleveryMethodId,
+            //int deleveryMethodId,
             Core.Entities.Order_Aggregate.Address orderAddress)
         {
             // 1- Get Cart From Cart Repo
@@ -43,7 +47,7 @@ namespace Talabat.Service
                 {
                     var product = await _unitOfWork.GetRepository<Product>().GetAsync(item.ItemId);
 
-                    if (product is null) return null;
+                    if (product is null) continue;
                     orderItems.Add(
                         new OrderItem(
                             new OrderedItemProduct(product.Id, product.Name, product.PicUrl),
@@ -63,13 +67,28 @@ namespace Talabat.Service
 
             // 4- Get Delevery Method From Delevery Method Repo
 
-            var deleveryMethod = await _unitOfWork.GetRepository<DeleveryMethod>().GetAsync(deleveryMethodId);
+            var deleveryMethod = await _unitOfWork.GetRepository<DeleveryMethod>().GetAsync(cart.DeliveryMethodId);
 
             if (deleveryMethod is null) return null;
 
+            var orderRepo = _unitOfWork.GetRepository<Order>();
+
+            var existingOrders = await orderRepo
+                .GetAllWithSpecsAsync(new OrderSpecifications(cart.PaymentIntentId));
+            foreach (var item in existingOrders)
+            {
+                orderRepo.Delete(item);
+                await _paymentService.CreateOrUpdatePaymentIntent(cartId);
+            }
             // 5- Create Order
 
-            var order = new Order(customerEmail, orderItems, orderAddress, deleveryMethod, subTotal);
+            var order = new Order(
+                customerEmail,
+                orderItems,
+                orderAddress,
+                deleveryMethod,
+                subTotal,
+                cart.PaymentIntentId);
 
             // 6- Save To Data Base
 

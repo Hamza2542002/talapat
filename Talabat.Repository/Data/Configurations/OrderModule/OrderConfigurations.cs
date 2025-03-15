@@ -14,7 +14,10 @@ namespace Talabat.Repository.Data.Configurations.OrderModule
 
 
             builder.OwnsOne(o => o.OrderAddress, a => a.WithOwner()); // [1:1] Total
-
+            builder.HasMany(o => o.OredrItems)
+                .WithOne(OI => OI.Order)
+                .HasForeignKey(OI =>OI.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Property(o => o.Status)
                 .HasConversion(
                     oStatus => oStatus.ToString(),

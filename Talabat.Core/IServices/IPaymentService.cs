@@ -4,6 +4,6 @@ namespace Talabat.Core.IServices
 {
     public interface IPaymentService
     {
-        Task<CustomerCart?> CreateOrUpdatePaymentIntent(string basketId);
+        Task<CustomerCart?> CreateOrUpdatePaymentIntent(string cartId);
     }
 }
