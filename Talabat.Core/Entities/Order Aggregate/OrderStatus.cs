@@ -12,5 +12,9 @@ namespace Talabat.Core.Entities.Order_Aggregate
         Canceled,
         [EnumMember(Value = "Delevired")]
         Delevired,
+        [EnumMember(Value = "Payemnt Succeded")]
+        PayemntSucceded,
+        [EnumMember(Value = "Payemnt Failed")]
+        PayemntFailed,
     }
 }

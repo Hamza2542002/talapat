@@ -15,5 +15,7 @@ namespace Talabat.Dtos
         public decimal SubTotal { get; set; }
         public decimal Total { get; set; }
         public string PaymentIntentId { get; set; } = string.Empty;
+        public string CartId { get; set; }
+        public string ClientSecret { get; set; }
     }
 }
