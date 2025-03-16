@@ -39,6 +39,14 @@ public class Program
             .AddEndpointsApiExplorer()
             .AddSwaggerGen();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AppPolicy", options =>
+            {
+                options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+            });
+        });
+
         builder.Services.AddSingleton<IConnectionMultiplexer>(
                 serviceProvicer => {
                     var connection = builder.Configuration.GetConnectionString("Redis") ?? "localhost";
@@ -104,6 +112,8 @@ public class Program
         app.UseStaticFiles(); // must be used here
 
         app.MapControllers();
+
+        app.UseCors("AppPolicy");
 
         app.UseAuthentication();
 
