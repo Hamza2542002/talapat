@@ -22,6 +22,11 @@ namespace Talabat.Core.Specifications.OrderSpecs
             ApplySort(specsParams);
         }
 
+        public OrderSpecifications(int orderId)
+        {
+            AddIncludes();
+        }
+
         private void ApplySort(OrderSpecsParams specsParams)
         {
             switch (specsParams.Sort)

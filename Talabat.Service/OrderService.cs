@@ -29,13 +29,14 @@ namespace Talabat.Service
         public async Task<Order?> CreateOrderAsync(
             string customerEmail, 
             string cartId, 
-            //int deleveryMethodId,
+            int deleveryMethodId,
             Core.Entities.Order_Aggregate.Address orderAddress)
         {
             // 1- Get Cart From Cart Repo
 
             var cart = await _cartRepo.GetCustomerCartAsync(cartId);
             if (cart is null) return null;
+
 
             // 2- Get Selected Items From Product Repo
 
@@ -67,19 +68,13 @@ namespace Talabat.Service
 
             // 4- Get Delevery Method From Delevery Method Repo
 
-            var deleveryMethod = await _unitOfWork.GetRepository<DeleveryMethod>().GetAsync(cart.DeliveryMethodId);
+            var deleveryMethod = await _unitOfWork.GetRepository<DeleveryMethod>().GetAsync(deleveryMethodId);
 
             if (deleveryMethod is null) return null;
 
             var orderRepo = _unitOfWork.GetRepository<Order>();
 
-            var existingOrders = await orderRepo
-                .GetAllWithSpecsAsync(new OrderSpecifications(cart.PaymentIntentId));
-            foreach (var item in existingOrders)
-            {
-                orderRepo.Delete(item);
-                await _paymentService.CreateOrUpdatePaymentIntent(cartId);
-            }
+
             // 5- Create Order
 
             var order = new Order(
@@ -87,8 +82,9 @@ namespace Talabat.Service
                 orderItems,
                 orderAddress,
                 deleveryMethod,
-                subTotal,
-                cart.PaymentIntentId);
+                deleveryMethodId,
+                cartId,
+                subTotal,"");
 
             // 6- Save To Data Base
 
@@ -126,7 +122,20 @@ namespace Talabat.Service
             var orders = await _unitOfWork.GetRepository<Order>().GetAllWithSpecsAsync(specs);
             return orders;
         }
-    
 
+        public async Task<bool> UpdateOrderState(string paymentIntent, OrderStatus status)
+        {
+            var orderRepo = _unitOfWork.GetRepository<Order>();
+            var order = await orderRepo.GetWithSpecsAsync(new OrderSpecifications(paymentIntent));
+
+            if (order is null) return false;
+
+            order.Status = status;
+            var result = await _unitOfWork.CompleteAsync();
+
+            if(result == 0) return false;
+
+            return true;
+        }
     }
 }
