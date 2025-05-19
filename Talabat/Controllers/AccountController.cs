@@ -1,8 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Security.Claims;
 using Talabat.Core.Entities.Identity;
+using Talabat.Core.IServices;
 using Talabat.Dtos;
 using Talabat.Error;
 
@@ -14,12 +19,19 @@ namespace Talabat.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IMapper _mapper;
+        private readonly IAuthService _authService;
 
-        public AccountController(UserManager<ApplicationUser> userManager
-            ,SignInManager<ApplicationUser> signInManager)
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IMapper mapper,
+            IAuthService authService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _mapper = mapper;
+            _authService = authService;
         }
 
         [HttpPost("login")]
@@ -35,11 +47,11 @@ namespace Talabat.Controllers
                 return BadRequest(
                     new ErrorResponse(HttpStatusCode.BadRequest, "Given Email or Password is not Correct"));
 
-            return Ok(new UserDTO() 
-            { 
-                DisplayName = user.DisplayName, 
-                UserName = user.UserName, 
-                Token = "token.ToString()"
+            return Ok(new UserDTO()
+            {
+                DisplayName = user.DisplayName,
+                UserName = user.UserName,
+                Token = _authService.GenerateTokenAsync(user).Result
             });
         }
 
@@ -71,8 +83,46 @@ namespace Talabat.Controllers
             {
                 DisplayName = user.DisplayName,
                 UserName = user.UserName,
-                Token = "jskdlajsldk"
+                Token = _authService.GenerateTokenAsync(user).Result
             });
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var user = await _userManager.FindByEmailAsync(email);
+            return Ok(user);
+        }
+
+        [Authorize]
+        [HttpGet("address")]
+        public async Task<IActionResult> GetUserAddress()
+        {
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            var user = await _userManager.Users.Include(u => u.Address).SingleOrDefaultAsync(u => u.Email == userEmail);
+            
+            return Ok(_mapper.Map<UserAddressDTO>(user?.Address));
+        }
+
+        [Authorize]
+        [HttpPut("address")]
+        public async Task<IActionResult> UpdateAddress(UserAddressDTO address)
+        {
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            var user = await _userManager.Users.Include(u => u.Address).SingleOrDefaultAsync(u => u.Email == userEmail);
+
+            if (user?.Address != null)
+            {
+                _mapper.Map(address, user.Address);
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return BadRequest(new ErrorResponse(HttpStatusCode.BadRequest));
+
+            return Ok(_mapper.Map<UserAddressDTO>(user?.Address));
         }
     }
 }

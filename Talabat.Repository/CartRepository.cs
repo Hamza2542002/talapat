@@ -21,21 +21,16 @@ namespace Talabat.Repository
 
         public async Task<CustomerCart?> GetCustomerCartAsync(string id)
         {
-            var cartItems = await _database.StringGetAsync(id);
-            CustomerCart cart = new ()
-            {
-                CartItems = !cartItems.IsNullOrEmpty ? JsonSerializer.Deserialize<List<CartItem>>(cartItems) : []
-                , Id = id 
-            };
+            var cart = await _database.StringGetAsync(id);
 
-            return cart;
+            return JsonSerializer.Deserialize<CustomerCart>(cart);
         }
 
         public async Task<CustomerCart?> UpdateCustomerCartAsync(CustomerCart cart)
         {
             var newCart = cart;
             var result = await _database.StringSetAsync(cart.Id, 
-                JsonSerializer.Serialize(cart.CartItems),TimeSpan.FromDays(30));
+                JsonSerializer.Serialize(cart),TimeSpan.FromDays(30));
             
             if(!result)
                 return null;
