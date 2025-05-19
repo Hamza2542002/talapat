@@ -53,6 +53,8 @@ public class Program
                     return ConnectionMultiplexer.Connect(connection);
                 });
 
+        
+
         builder.Services.AddScoped(typeof(ICartRepository), typeof(CartRepository));
         builder.Services.AddDbContext<ApplicationIdentityDbContext>(options => 
             options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityCS")));
