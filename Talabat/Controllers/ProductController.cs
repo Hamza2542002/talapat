@@ -20,7 +20,7 @@ namespace Talabat.Controllers
         private readonly IProductService _productService = productService;
         private readonly IMapper _mapper = mapper;
 
-        [Authorize]
+        //[Authorize]
         [HttpGet()]
         public async Task<IActionResult> GetProducts([FromQuery]ProductSpecsParams productParamsModel)
         {
